@@ -363,9 +363,22 @@ async fn run(app: AndroidApp) {
                             }
                         }
                         MainEvent::TerminateWindow { .. }  => {
+                            // Flush shared objects before the window is destroyed,
+                            // otherwise game progress may be lost.
                             let player = &playerbox.as_ref().unwrap().player;
                             let mut player_lock = player.lock().unwrap();
+                            player_lock.flush_shared_objects();
                             player_lock.set_is_playing(false);
+                        }
+                        // On Android, Pause and Stop are sent when the app goes to
+                        // the background or the activity loses focus. Flush shared
+                        // objects here so game saves persist even if the process is
+                        // killed later.
+                        MainEvent::Pause | MainEvent::Stop => {
+                            if let Some(player) = playerbox.as_ref() {
+                                let mut player_lock = player.player.lock().unwrap();
+                                player_lock.flush_shared_objects();
+                            }
                         }
                         MainEvent::InputAvailable => {
                             if let Ok(mut inputs) = app.input_events_iter() {
