@@ -10,3 +10,4 @@
 local.properties
 /target
 *.jks
+/gradle/gradle-daemon-jvm.properties

@@ -1,5 +1,6 @@
 mod audio;
 mod custom_event;
+mod fonts;
 mod java;
 mod keycodes;
 mod navigator;
@@ -48,6 +49,7 @@ use ruffle_frontend_utils::{
     content::ContentDescriptor,
 };
 
+use crate::fonts::load_android_cjk_fonts;
 use crate::navigator::AndroidNavigatorInterface;
 use crate::trace::FileLogBackend;
 use java::JavaInterface;
@@ -331,6 +333,10 @@ async fn run(app: AndroidApp) {
 
                                 let player = &playerbox.as_ref().unwrap().player;
                                 let mut player_lock = player.lock().unwrap();
+
+                                // Load CJK system fonts for Chinese text support
+                                load_android_cjk_fonts(&mut player_lock);
+
                                 let (jvm, activity) = get_jvm().unwrap();
                                 let mut env = jvm.attach_current_thread().unwrap();
                                 let url = JavaInterface::get_swf_uri(&mut env, &activity);
